@@ -34,6 +34,7 @@ AWS_PROFILE=profile s3-region-stats
 
 - [ ] Add JSON Output
 - [ ] Expand to count EC2 instances
+- [ ] improve error handling
 
 ## License
 

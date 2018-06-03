@@ -40,7 +40,8 @@ binary:
 image: binary
 	$(call blue, "# Building Docker Image...")
 	@docker build --no-cache --label APP_VERSION=${RELEASE} --label BUILT_ON=${BUILD_TIME} --label GIT_HASH=${COMMIT} -t ${USERNAME}/${APP_NAME}:${RELEASE} .
-	@docker tag ${USERNAME}/${APP}:${RELEASE} ${USERNAME}/${APP}:latest
+	@docker tag ${USERNAME}/${APP_NAME}:${RELEASE} ${USERNAME}/${APP_NAME}:latest
+	@$(MAKE) clean
 
 # .PHONY: publish
 # publish: image
@@ -50,17 +51,21 @@ image: binary
 .PHONY: run
 run:
 	$(call blue, "# Running App...")
-	@docker run -it --rm -v "$(GOPATH)":/go -v "$(CURDIR)":/go/src/app -v "$(HOME)"/.aws:/root/.aws/ -w /go/src/app golang:${go_version} go run main.go
+	@docker run -it --rm -e "AWS_PROFILE=$(AWS_PROFILE)" -v "$(GOPATH):/go" -v "$(CURDIR):/go/src/app" -v "$(HOME)/.aws:/root/.aws/" -w /go/src/app golang:${GO_VERSION} go run main.go
 
 .PHONY: run_image
-run_image: image
+run_image: 
 	$(call blue, "# Running Docker Image Locally...")
-	@docker run -it --rm --name ${APP_NAME} ${USERNAME}/${APP_NAME}:${IMAGE_VERSION} 
+	@docker run -it --rm --name ${APP_NAME} -e "AWS_PROFILE=$(AWS_PROFILE)" -v "$(HOME)/.aws:/home/dockmaster/.aws/" ${USERNAME}/${APP_NAME}:${RELEASE} 
 
 .PHONY: test
 test:
 	$(call blue, "# Testing Golang Code...")
 	@docker run --rm -it -v "$(GOPATH):/go" -v "$(CURDIR)":/go/src/app -w /go/src/app golang:${GO_VERSION} sh -c 'go test -v -race ${GO_FILES}' 
+
+.PHONY: clean
+clean: 
+	@rm -f ${APP_NAME}_static
 
 #### FUNCTIONS ####
 define blue
