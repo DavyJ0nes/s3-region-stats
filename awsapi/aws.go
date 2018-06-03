@@ -37,7 +37,7 @@ func GetAllBuckets(svc *s3.S3) []string {
 }
 
 // GetBucketRegion gets the region of a bucket and sends to to a channel
-func GetBucketRegion(svc *s3.S3, bucket string, c chan string) {
+func GetBucketRegion(svc *s3.S3, bucket string) string {
 	input := &s3.GetBucketLocationInput{
 		Bucket: &bucket,
 	}
@@ -48,5 +48,5 @@ func GetBucketRegion(svc *s3.S3, bucket string, c chan string) {
 	if err != nil {
 		panic("Error making API request, " + err.Error())
 	}
-	c <- string(output.LocationConstraint)
+	return string(output.LocationConstraint)
 }

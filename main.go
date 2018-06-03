@@ -24,17 +24,12 @@ func main() {
 func getRegionStats() sorter.StatList {
 	s3 := awsapi.InitialiseClient()
 	bucketRegions := []string{}
-	regionChannel := make(chan string)
 
 	buckets := awsapi.GetAllBuckets(s3)
 	// generate output to channel
 	for _, bucket := range buckets {
-		go awsapi.GetBucketRegion(s3, bucket, regionChannel)
-	}
-
-	// read from channel
-	for range buckets {
-		bucketRegions = append(bucketRegions, <-regionChannel)
+		bucketRegion := awsapi.GetBucketRegion(s3, bucket)
+		bucketRegions = append(bucketRegions, bucketRegion)
 	}
 
 	regionStats := make(map[string]int)
