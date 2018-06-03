@@ -1,8 +1,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
+	"runtime/trace"
 	"text/tabwriter"
 	"time"
 
@@ -13,6 +15,13 @@ import (
 const padding = 3
 
 func main() {
+	enableTrace := flag.Bool("trace", false, "Enable Tracing or not")
+	flag.Parse()
+
+	if *enableTrace {
+		trace.Start(os.Stderr)
+		defer trace.Stop()
+	}
 	start := time.Now()
 
 	regionStats := getRegionStats()
