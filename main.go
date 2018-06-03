@@ -3,12 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 	"runtime/trace"
 	"text/tabwriter"
 	"time"
 
 	"github.com/davyj0nes/s3-region-stats/awsapi"
+	"github.com/davyj0nes/s3-region-stats/server"
 	"github.com/davyj0nes/s3-region-stats/sorter"
 )
 
@@ -16,47 +19,25 @@ const padding = 3
 
 func main() {
 	enableTrace := flag.Bool("trace", false, "Enable Tracing or not")
+	runServer := flag.Bool("server", false, "Run App as Web Service")
 	flag.Parse()
 
 	if *enableTrace {
 		trace.Start(os.Stderr)
 		defer trace.Stop()
 	}
+
 	start := time.Now()
 
-	regionStats := getRegionStats()
-	textOutput(regionStats)
-
-	fmt.Printf("\n%.2fs elapsed\n", time.Since(start).Seconds())
-}
-
-func getRegionStats() sorter.StatList {
-	s3 := awsapi.InitialiseClient()
-	bucketRegions := []string{}
-	regionChannel := make(chan string)
-
-	buckets := awsapi.GetAllBuckets(s3)
-	// generate output to channel
-	for _, bucket := range buckets {
-		go awsapi.GetBucketRegion(s3, bucket, regionChannel)
+	if *runServer {
+		srv := server.NewServer()
+		log.Println("Starting Server")
+		log.Fatal(http.ListenAndServe("0.0.0.0:8008", srv))
+	} else {
+		regionStats := awsapi.GetRegionStats()
+		textOutput(sorter.Sorter(regionStats))
+		fmt.Printf("\n%.2fs elapsed\n", time.Since(start).Seconds())
 	}
-
-	// read from channel
-	for range buckets {
-		bucketRegions = append(bucketRegions, <-regionChannel)
-	}
-
-	regionStats := make(map[string]int)
-	for _, item := range bucketRegions {
-		_, exist := regionStats[item]
-		if exist {
-			regionStats[item]++
-		} else {
-			regionStats[item] = 1
-		}
-	}
-
-	return sorter.Sorter(regionStats)
 }
 
 func textOutput(regionStats sorter.StatList) {

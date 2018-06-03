@@ -50,3 +50,37 @@ func GetBucketRegion(svc *s3.S3, bucket string, c chan string) {
 	}
 	c <- string(output.LocationConstraint)
 }
+
+// GetRegionStats gets the count of buckets in each AWS Region
+func GetRegionStats() map[string]int {
+	s3 := InitialiseClient()
+	bucketRegions := []string{}
+	regionChannel := make(chan string)
+
+	buckets := GetAllBuckets(s3)
+	// generate output to channel
+	for _, bucket := range buckets {
+		go GetBucketRegion(s3, bucket, regionChannel)
+	}
+
+	// read from channel
+	for range buckets {
+		bucketRegions = append(bucketRegions, <-regionChannel)
+	}
+
+	regionStats := make(map[string]int)
+	for _, item := range bucketRegions {
+		_, exist := regionStats[item]
+		if exist {
+			regionStats[item]++
+		} else {
+			regionStats[item] = 1
+		}
+	}
+
+	// For empty key values rename to No Region
+	regionStats["No Region"] = regionStats[""]
+	delete(regionStats, "")
+
+	return regionStats
+}
