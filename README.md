@@ -9,7 +9,7 @@ Simple script to get the number of buckets that are in each AWS Region.
 Usage instructions:
 
 ```shell
-AWS_PROFILE=profile s3-region-stats
+$ AWS_PROFILE=profile s3-region-stats
            Region|   Count|
         eu-west-1|      89|
         us-west-2|      25|
@@ -30,20 +30,18 @@ AWS_PROFILE=profile s3-region-stats
 3.26s elapsed
 
 # Get trace output
-AWS_PROFILE=profile s3-region-stats -trace 1> /dev/null 2> output.trace
-go tool trace output.trace
+$ AWS_PROFILE=profile s3-region-stats -trace 1> /dev/null 2> output.trace
+$ go tool trace output.trace
 2018/06/03 17:17:00 Parsing trace...
 2018/06/03 17:17:00 Serializing trace...
 2018/06/03 17:17:00 Splitting trace...
 2018/06/03 17:17:00 Opening browser
-
 ```
 
 ## TODO
 
-- [ ] Add JSON Output
 - [ ] Expand to count EC2 instances
-- [ ] improve error handling
+- [ ] Improve error handling
 
 ## License
 
