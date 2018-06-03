@@ -6,8 +6,8 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/davyj0nes/s3-bucket-locations/awsapi"
-	"github.com/davyj0nes/s3-bucket-locations/sorter"
+	"github.com/davyj0nes/s3-region-stats/awsapi"
+	"github.com/davyj0nes/s3-region-stats/sorter"
 )
 
 const padding = 3
@@ -18,7 +18,7 @@ func main() {
 	regionStats := getRegionStats()
 	textOutput(regionStats)
 
-	fmt.Printf("%.2fs elapsed\n", time.Since(start).Seconds())
+	fmt.Printf("\n%.2fs elapsed\n", time.Since(start).Seconds())
 }
 
 func getRegionStats() sorter.StatList {
@@ -52,12 +52,18 @@ func getRegionStats() sorter.StatList {
 
 func textOutput(regionStats sorter.StatList) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', tabwriter.AlignRight|tabwriter.Debug)
+	total := 0
+
 	fmt.Fprintln(w, "Region\tCount\t")
 	for _, stat := range regionStats {
 		if stat.Key == "" {
 			stat.Key = "No Region"
 		}
+		total += stat.Value
 		fmt.Fprintf(w, "%s\t %d\t\n", stat.Key, stat.Value)
 	}
+
+	fmt.Fprintf(w, "TOTAL\t %d\t\n", total)
+
 	w.Flush()
 }
