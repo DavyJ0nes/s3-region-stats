@@ -2,6 +2,8 @@
 
 ## Description
 
+> This is using sync.WaitGroup rather than channels
+
 Simple script to get the number of buckets that are in each AWS Region
 
 ## Usage
